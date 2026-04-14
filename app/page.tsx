@@ -27,12 +27,41 @@ const stats = [
   { label: "Verified Users", value: "523" },
 ];
 
+type Agent = typeof agents[0];
+type Result = { output: string; txHash: string; timestamp: string } | null;
+
 export default function Home() {
   const [active, setActive] = useState("all");
-  const [hired, setHired] = useState<number | null>(null);
-  const [modal, setModal] = useState<typeof agents[0] | null>(null);
+  const [modal, setModal] = useState<Agent | null>(null);
+  const [task, setTask] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<Result>(null);
 
   const filtered = active === "all" ? agents : agents.filter(a => a.category === active);
+
+  async function hireAgent() {
+    if (!task.trim() || !modal) return;
+    setLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/hire", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentName: modal.name, task }),
+      });
+      const data = await res.json();
+      setResult(data);
+    } catch {
+      setResult({ output: "Agent failed. Try again.", txHash: "", timestamp: "" });
+    }
+    setLoading(false);
+  }
+
+  function openModal(agent: Agent) {
+    setModal(agent);
+    setTask("");
+    setResult(null);
+  }
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white font-sans">
@@ -62,17 +91,11 @@ export default function Home() {
         <p className="text-zinc-400 text-lg mb-10 max-w-2xl mx-auto">
           The first agent economy for builders, creators, and everyday users — powered by 0G Storage, Compute, Agent ID, and on-chain micropayments.
         </p>
-
-        {/* 0G BADGES */}
         <div className="flex gap-3 justify-center flex-wrap mb-12">
           {["0G Storage", "0G Compute", "Agent ID", "0G Chain"].map(b => (
-            <div key={b} className="bg-zinc-900 border border-zinc-700 hover:border-purple-600 transition rounded-xl px-4 py-2 text-sm text-purple-300 font-medium">
-              {b}
-            </div>
+            <div key={b} className="bg-zinc-900 border border-zinc-700 hover:border-purple-600 transition rounded-xl px-4 py-2 text-sm text-purple-300 font-medium">{b}</div>
           ))}
         </div>
-
-        {/* STATS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map(s => (
             <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
@@ -93,10 +116,9 @@ export default function Home() {
             </button>
           ))}
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(agent => (
-            <div key={agent.id} className="bg-zinc-900 border border-zinc-800 hover:border-purple-700 transition rounded-2xl p-6 flex flex-col justify-between group">
+            <div key={agent.id} className="bg-zinc-900 border border-zinc-800 hover:border-purple-700 transition rounded-2xl p-6 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-start mb-3">
                   <span className="text-3xl">{agent.badge}</span>
@@ -106,14 +128,10 @@ export default function Home() {
                 <p className="text-zinc-400 text-sm mb-4 leading-relaxed">{agent.desc}</p>
               </div>
               <div className="flex justify-between items-center pt-4 border-t border-zinc-800">
-                <span className="text-white font-bold text-sm">
-                  {agent.price} USDC
-                  <span className="text-zinc-500 font-normal"> / task</span>
-                </span>
-                <button
-                  onClick={() => { setHired(agent.id); setModal(agent); }}
+                <span className="text-white font-bold text-sm">{agent.price} USDC<span className="text-zinc-500 font-normal"> / task</span></span>
+                <button onClick={() => openModal(agent)}
                   className="bg-purple-600 hover:bg-purple-500 text-white text-sm px-4 py-1.5 rounded-lg transition font-medium">
-                  {hired === agent.id ? "✓ Hired!" : "Hire"}
+                  Hire
                 </button>
               </div>
             </div>
@@ -121,23 +139,59 @@ export default function Home() {
         </div>
       </section>
 
-      {/* MODAL */}
+      {/* HIRE MODAL */}
       {modal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4" onClick={() => setModal(null)}>
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-8 max-w-md w-full" onClick={e => e.stopPropagation()}>
-            <div className="text-4xl mb-3">{modal.badge}</div>
-            <h2 className="text-xl font-bold mb-1">{modal.name}</h2>
-            <p className="text-zinc-400 text-sm mb-6">{modal.desc}</p>
-            <div className="bg-zinc-800 rounded-xl p-4 mb-6 text-sm space-y-2">
-              <div className="flex justify-between"><span className="text-zinc-500">Price</span><span className="text-white font-medium">{modal.price} USDC / task</span></div>
-              <div className="flex justify-between"><span className="text-zinc-500">Storage</span><span className="text-purple-400">0G Storage</span></div>
-              <div className="flex justify-between"><span className="text-zinc-500">Compute</span><span className="text-purple-400">0G Compute</span></div>
-              <div className="flex justify-between"><span className="text-zinc-500">Identity</span><span className="text-purple-400">Agent ID</span></div>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4 py-8 overflow-y-auto" onClick={() => { setModal(null); setResult(null); }}>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-lg w-full my-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <span className="text-3xl">{modal.badge}</span>
+                <h2 className="text-lg font-bold mt-1">{modal.name}</h2>
+                <p className="text-zinc-400 text-sm">{modal.desc}</p>
+              </div>
+              <button onClick={() => { setModal(null); setResult(null); }} className="text-zinc-500 hover:text-white text-xl">✕</button>
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => setModal(null)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-2.5 rounded-xl text-sm transition">Cancel</button>
-              <button className="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-2.5 rounded-xl text-sm font-medium transition">Connect & Pay</button>
+
+            <div className="bg-zinc-800 rounded-xl p-3 mb-4 text-xs grid grid-cols-2 gap-2">
+              <div><span className="text-zinc-500">Price</span><br /><span className="text-white font-medium">{modal.price} USDC / task</span></div>
+              <div><span className="text-zinc-500">Compute</span><br /><span className="text-purple-400">0G Network</span></div>
+              <div><span className="text-zinc-500">Storage</span><br /><span className="text-purple-400">0G Storage</span></div>
+              <div><span className="text-zinc-500">Identity</span><br /><span className="text-purple-400">Agent ID</span></div>
             </div>
+
+            {!result ? (
+              <>
+                <textarea
+                  value={task}
+                  onChange={e => setTask(e.target.value)}
+                  placeholder={`Describe your task for ${modal.name}...`}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-sm text-white placeholder-zinc-500 resize-none h-28 mb-4 focus:outline-none focus:border-purple-600"
+                />
+                <div className="flex gap-3">
+                  <button onClick={() => setModal(null)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-2.5 rounded-xl text-sm transition">Cancel</button>
+                  <button onClick={hireAgent} disabled={loading || !task.trim()}
+                    className="flex-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-medium transition">
+                    {loading ? "Agent running..." : `Hire for ${modal.price} USDC`}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div>
+                <div className="bg-zinc-800 rounded-xl p-4 mb-4">
+                  <div className="text-xs text-purple-400 font-medium mb-2">✓ Agent Output</div>
+                  <p className="text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed">{result.output}</p>
+                </div>
+                <div className="bg-zinc-800/50 rounded-xl p-3 mb-4 text-xs space-y-1">
+                  <div className="flex justify-between"><span className="text-zinc-500">Stored on</span><span className="text-purple-400">0G Storage ✓</span></div>
+                  <div className="flex justify-between"><span className="text-zinc-500">Tx Hash</span><span className="text-zinc-400 font-mono truncate ml-4">{result.txHash}</span></div>
+                  <div className="flex justify-between"><span className="text-zinc-500">Timestamp</span><span className="text-zinc-400">{new Date(result.timestamp).toLocaleTimeString()}</span></div>
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setResult(null)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-2.5 rounded-xl text-sm transition">New Task</button>
+                  <button onClick={() => setModal(null)} className="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-2.5 rounded-xl text-sm font-medium transition">Done</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
