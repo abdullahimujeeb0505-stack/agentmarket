@@ -1,65 +1,150 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+
+const agents = [
+  { id: 1, name: "Contract Auditor", desc: "Scans Solidity contracts for vulnerabilities, reentrancy, and exploits.", price: "0.05", category: "builders", runs: 892, badge: "🔐" },
+  { id: 2, name: "Wallet Risk Scanner", desc: "Analyzes wallet history, approvals, and on-chain risk exposure.", price: "0.03", category: "builders", runs: 1204, badge: "🛡️" },
+  { id: 3, name: "Code Generator", desc: "Generates Solidity boilerplate, ERC20/721 contracts and deployment scripts.", price: "0.04", category: "builders", runs: 670, badge: "⚙️" },
+  { id: 4, name: "Thread Writer", desc: "Researches Web3 topics and writes viral X threads in your voice.", price: "0.02", category: "creators", runs: 2310, badge: "✍️" },
+  { id: 5, name: "Community Analyst", desc: "Analyzes Discord and Twitter sentiment, tracks narratives and trends.", price: "0.025", category: "creators", runs: 1560, badge: "📊" },
+  { id: 6, name: "Alpha Researcher", desc: "Deep-dives into protocols, tokenomics and surfaces early opportunities.", price: "0.035", category: "creators", runs: 980, badge: "🔍" },
+  { id: 7, name: "Research Agent", desc: "Searches, summarizes and synthesizes information on any topic.", price: "0.01", category: "general", runs: 3200, badge: "🧠" },
+  { id: 8, name: "Travel Planner", desc: "Plans trips, finds deals and builds full itineraries on demand.", price: "0.015", category: "general", runs: 740, badge: "✈️" },
+  { id: 9, name: "Data Analyst", desc: "Uploads CSVs, detects patterns and generates visual insights.", price: "0.02", category: "general", runs: 1100, badge: "📈" },
+];
+
+const tabs = [
+  { id: "all", label: "All Agents" },
+  { id: "builders", label: "🔨 Builders" },
+  { id: "creators", label: "🎨 Creators" },
+  { id: "general", label: "🌍 General" },
+];
+
+const stats = [
+  { label: "Agents Live", value: "9" },
+  { label: "Tasks Completed", value: "12.6K" },
+  { label: "0G Storage Used", value: "4.2 GB" },
+  { label: "Verified Users", value: "523" },
+];
 
 export default function Home() {
+  const [active, setActive] = useState("all");
+  const [hired, setHired] = useState<number | null>(null);
+  const [modal, setModal] = useState<typeof agents[0] | null>(null);
+
+  const filtered = active === "all" ? agents : agents.filter(a => a.category === active);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-[#0a0a0a] text-white font-sans">
+      {/* NAV */}
+      <nav className="border-b border-zinc-800 px-6 py-4 flex justify-between items-center sticky top-0 bg-[#0a0a0a]/95 backdrop-blur z-50">
+        <div className="flex items-center gap-3">
+          <div>
+            <span className="text-xl font-bold">Agent</span>
+            <span className="text-xl font-bold text-purple-400">Market</span>
+          </div>
+          <span className="text-xs bg-purple-900/50 text-purple-300 border border-purple-800 px-2 py-0.5 rounded-full">0G Powered</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <button className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded-lg transition font-medium">
+          Connect Wallet
+        </button>
+      </nav>
+
+      {/* HERO */}
+      <section className="px-6 py-20 text-center max-w-4xl mx-auto">
+        <div className="inline-block bg-purple-900/30 border border-purple-800 text-purple-300 text-xs px-3 py-1 rounded-full mb-6">
+          The App Store for AI Agents
         </div>
-      </main>
-    </div>
+        <h1 className="text-5xl font-bold mb-5 leading-tight">
+          Hire AI Agents.<br />
+          <span className="text-purple-400">Pay on-chain. Own the output.</span>
+        </h1>
+        <p className="text-zinc-400 text-lg mb-10 max-w-2xl mx-auto">
+          The first agent economy for builders, creators, and everyday users — powered by 0G Storage, Compute, Agent ID, and on-chain micropayments.
+        </p>
+
+        {/* 0G BADGES */}
+        <div className="flex gap-3 justify-center flex-wrap mb-12">
+          {["0G Storage", "0G Compute", "Agent ID", "0G Chain"].map(b => (
+            <div key={b} className="bg-zinc-900 border border-zinc-700 hover:border-purple-600 transition rounded-xl px-4 py-2 text-sm text-purple-300 font-medium">
+              {b}
+            </div>
+          ))}
+        </div>
+
+        {/* STATS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {stats.map(s => (
+            <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+              <div className="text-2xl font-bold text-white">{s.value}</div>
+              <div className="text-xs text-zinc-500 mt-1">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* AGENTS */}
+      <section className="px-6 pb-24 max-w-6xl mx-auto">
+        <div className="flex gap-2 mb-8 flex-wrap">
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setActive(t.id)}
+              className={`px-5 py-2 rounded-full text-sm font-medium transition ${active === t.id ? "bg-purple-600 text-white" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"}`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map(agent => (
+            <div key={agent.id} className="bg-zinc-900 border border-zinc-800 hover:border-purple-700 transition rounded-2xl p-6 flex flex-col justify-between group">
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-3xl">{agent.badge}</span>
+                  <span className="text-xs text-zinc-500">{agent.runs.toLocaleString()} runs</span>
+                </div>
+                <h3 className="font-semibold text-white mb-1">{agent.name}</h3>
+                <p className="text-zinc-400 text-sm mb-4 leading-relaxed">{agent.desc}</p>
+              </div>
+              <div className="flex justify-between items-center pt-4 border-t border-zinc-800">
+                <span className="text-white font-bold text-sm">
+                  {agent.price} USDC
+                  <span className="text-zinc-500 font-normal"> / task</span>
+                </span>
+                <button
+                  onClick={() => { setHired(agent.id); setModal(agent); }}
+                  className="bg-purple-600 hover:bg-purple-500 text-white text-sm px-4 py-1.5 rounded-lg transition font-medium">
+                  {hired === agent.id ? "✓ Hired!" : "Hire"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* MODAL */}
+      {modal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4" onClick={() => setModal(null)}>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-8 max-w-md w-full" onClick={e => e.stopPropagation()}>
+            <div className="text-4xl mb-3">{modal.badge}</div>
+            <h2 className="text-xl font-bold mb-1">{modal.name}</h2>
+            <p className="text-zinc-400 text-sm mb-6">{modal.desc}</p>
+            <div className="bg-zinc-800 rounded-xl p-4 mb-6 text-sm space-y-2">
+              <div className="flex justify-between"><span className="text-zinc-500">Price</span><span className="text-white font-medium">{modal.price} USDC / task</span></div>
+              <div className="flex justify-between"><span className="text-zinc-500">Storage</span><span className="text-purple-400">0G Storage</span></div>
+              <div className="flex justify-between"><span className="text-zinc-500">Compute</span><span className="text-purple-400">0G Compute</span></div>
+              <div className="flex justify-between"><span className="text-zinc-500">Identity</span><span className="text-purple-400">Agent ID</span></div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setModal(null)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-2.5 rounded-xl text-sm transition">Cancel</button>
+              <button className="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-2.5 rounded-xl text-sm font-medium transition">Connect & Pay</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <footer className="border-t border-zinc-800 px-6 py-8 text-center text-zinc-600 text-sm">
+        AgentMarket · Built on 0G Network · 0G APAC Hackathon 2026
+      </footer>
+    </main>
   );
 }
