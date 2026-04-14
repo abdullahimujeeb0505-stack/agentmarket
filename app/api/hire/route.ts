@@ -8,13 +8,13 @@ export async function POST(req: NextRequest) {
 
   const stored = await storeOnZeroG(
     JSON.stringify({ agentName, task, output, timestamp: new Date().toISOString() }),
-    `agentmarket-${agentName}-${Date.now()}.json`
+    `${agentName}-${Date.now()}.json`
   );
 
   return NextResponse.json({
     success: true,
     output,
-    storedOn: "0G Storage",
+    storedOn: "0G Testnet",
     rootHash: stored.rootHash,
     txHash: stored.txHash,
     storageUrl: stored.url,
