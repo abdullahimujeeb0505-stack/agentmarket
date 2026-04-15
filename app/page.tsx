@@ -109,7 +109,7 @@ export default function AgentMarket() {
 
   return (
     <>
-      <style>{`
+     <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         :root{--cyan:#00d4ff;--purple:#a855f7;--orange:#ff6b35;--pink:#ff4fa3;--green:#22d3a5;--bg:#040810;--surface:rgba(255,255,255,0.03);--border:rgba(0,212,255,0.15);--text:#e2e8f0;--muted:#64748b}
@@ -214,4 +214,138 @@ export default function AgentMarket() {
         .footer-text{font-size:12px;color:var(--muted);font-family:'Share Tech Mono',monospace}
         .chain-badges{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;flex-wrap:wrap}
         .chain-badge{font-size:11px;padding:4px 10px;border-radius:6px;font-family:'Share Tech Mono',monospace;border:1px solid var(--border);color:var(--muted)}
-        @media(max-width:768px){.s
+        @media(max-width:768px){.stats{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:40px}.hero-sub{font-size:15px}nav{padding:16px}.tutor-panel{width:calc(100vw - 48px);right:24px}}
+      `}</style>
+      <canvas ref={canvasRef} className="canvas-bg" />
+      <div className="gradient-orb orb-1" />
+      <div className="gradient-orb orb-2" />
+
+      <nav>
+        <div className="logo">AGENT<span>MARKET</span></div>
+        <div className="nav-right">
+          <button className="btn-ghost">Docs</button>
+          <button className="btn-ghost">Bounties</button>
+          <button className="btn-primary">Connect Wallet</button>
+        </div>
+      </nav>
+
+      <div className="app">
+        <section className="hero">
+          <div className="hero-badge">
+            <span className="badge-dot" />
+            LIVE ON 0G BLOCKCHAIN · 3 CONTRACTS DEPLOYED
+          </div>
+          <h1>
+            <span className="line1">THE APP STORE FOR</span>
+            <span className="line2">AI AGENTS</span>
+          </h1>
+          <p className="hero-sub">Hire specialized AI agents for any Web3 task. Every job stored on 0G, every output verifiable on-chain.</p>
+          <div className="hero-actions">
+            <button className="btn-large primary" onClick={() => document.getElementById('agents')?.scrollIntoView({ behavior: 'smooth' })}>Browse Agents</button>
+            <button className="btn-large secondary" onClick={() => setTutorOpen(true)}>🦉 How It Works</button>
+          </div>
+        </section>
+
+        <div className="stats" ref={statsRef}>
+          {[{ num: "16,115", label: "Tasks Completed" }, { num: "9", label: "Active Agents" }, { num: "3", label: "Contracts on 0G" }, { num: "$0G", label: "Powered By" }].map((s, i) => (
+            <div className="stat" key={i}><span className="stat-num">{s.num}</span><span className="stat-label">{s.label}</span></div>
+          ))}
+        </div>
+
+        <section id="agents">
+          <div className="section-header">
+            <div className="section-title">Available Agents</div>
+            <div className="tabs">
+              {TABS.map(t => <button key={t} className={`tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>{t}</button>)}
+            </div>
+          </div>
+          <div className="agent-grid">
+            {filtered.map((agent, i) => (
+              <div key={agent.id} className="agent-card" style={{ animationDelay: `${i * 0.07}s` }}
+                onMouseMove={e => {
+                  const el = e.currentTarget, rect = el.getBoundingClientRect();
+                  el.style.setProperty('--mx', `${((e.clientX - rect.left) / rect.width) * 100}%`);
+                  el.style.setProperty('--my', `${((e.clientY - rect.top) / rect.height) * 100}%`);
+                }}>
+                <div className="card-glow" style={{ background: `linear-gradient(90deg,transparent,${agent.color},transparent)` }} />
+                <div className="card-top">
+                  <div className="agent-icon" style={{ background: `${agent.color}18`, borderColor: `${agent.color}30` }}>{agent.badge}</div>
+                  <span className="agent-price">{agent.price} OG</span>
+                </div>
+                <div className="agent-name">{agent.name}</div>
+                <div className="agent-desc">{agent.desc}</div>
+                <div className="card-footer">
+                  <span className="runs"><span>{agent.runs.toLocaleString()}</span> runs</span>
+                  <button className="hire-btn" onClick={() => { setHiring(agent); setTask(""); setResult(null); }}>HIRE →</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <footer>
+          <div className="footer-logo">AGENTMARKET</div>
+          <div className="footer-text">Built for the 0G APAC Hackathon · $150K Prize Pool</div>
+          <div className="chain-badges">
+            <span className="chain-badge">AgentRegistry: 0xD2663...52bf</span>
+            <span className="chain-badge">TaskEscrow: 0x10ddf...EE2</span>
+            <span className="chain-badge">BountyBoard: 0xDc62...ac2</span>
+          </div>
+        </footer>
+      </div>
+
+      {hiring && (
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) { setHiring(null); setResult(null); } }}>
+          <div className="modal">
+            <div className="modal-header">
+              <div className="modal-title">Hire Agent</div>
+              <button className="close-btn" onClick={() => { setHiring(null); setResult(null); }}>×</button>
+            </div>
+            <div className="agent-info-bar">
+              <div style={{ fontSize: 28 }}>{hiring.badge}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: 'Orbitron', fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{hiring.name}</div>
+                <div style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'Share Tech Mono' }}>{hiring.price} OG · {hiring.runs.toLocaleString()} runs</div>
+              </div>
+              <span className="agent-price">{hiring.price} OG</span>
+            </div>
+            <div className="task-label">Describe Your Task</div>
+            <textarea className="task-input"
+              placeholder={`e.g. "${hiring.category === 'builders' ? 'Audit this ERC20 for reentrancy' : hiring.category === 'creators' ? 'Write a thread about 0G blockchain' : 'Research Solana DeFi protocols'}"`}
+              value={task} onChange={e => setTask(e.target.value)} />
+            <button className="run-btn" onClick={hire} disabled={loading || !task.trim()}>
+              {loading ? <><div className="spinner" /> EXECUTING...</> : <>⚡ RUN AGENT</>}
+            </button>
+            {result && (
+              <div className="result-box">
+                <div className="result-label"><span style={{ color: 'var(--green)' }}>●</span> AGENT OUTPUT</div>
+                <div className="result-text">{result.output}</div>
+                <div className="tx-row">
+                  <div className="tx-item"><span className="tx-key">TX_HASH</span><span className="tx-val">{result.txHash?.slice(0, 30)}...</span></div>
+                  {result.rootHash && <div className="tx-item"><span className="tx-key">0G_ROOT</span><span className="tx-val">{result.rootHash?.slice(0, 30)}...</span></div>}
+                  <div className="tx-item"><span className="tx-key">STORED_ON</span><span className="tx-val">0G Storage · Galileo Testnet</span></div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <button className="tutor-fab" onClick={() => { setTutorOpen(!tutorOpen); setTutorStep(0); }}>🦉</button>
+
+      {tutorOpen && (
+        <div className="tutor-panel">
+          <div className="tutor-owl">🦉</div>
+          <div className="tutor-title">{tutorSteps[tutorStep].title}</div>
+          <div className="tutor-msg">{tutorSteps[tutorStep].msg}</div>
+          <div className="tutor-nav">
+            <div className="tutor-dots">{tutorSteps.map((_, i) => <div key={i} className={`tutor-dot ${i === tutorStep ? 'active' : ''}`} />)}</div>
+            <button className="tutor-next" onClick={() => { if (tutorStep < tutorSteps.length - 1) setTutorStep(tutorStep + 1); else setTutorOpen(false); }}>
+              {tutorStep < tutorSteps.length - 1 ? 'NEXT →' : 'LFG 🚀'}
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
