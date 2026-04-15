@@ -330,22 +330,117 @@ export default function AgentMarket() {
           </div>
         </div>
       )}
+{/* TUTOR BOT */}
+      <style>{`
+        @keyframes owlWalk {
+          0% { transform: translateX(0) scaleX(1); }
+          25% { transform: translateX(30px) scaleX(1); }
+          50% { transform: translateX(30px) scaleX(-1); }
+          75% { transform: translateX(0) scaleX(-1); }
+          100% { transform: translateX(0) scaleX(1); }
+        }
+        @keyframes owlPoint {
+          0%,100% { transform: rotate(0deg) translateY(0); }
+          30% { transform: rotate(-20deg) translateY(-8px); }
+          60% { transform: rotate(15deg) translateY(-4px); }
+        }
+        @keyframes owlCelebrate {
+          0%,100% { transform: translateY(0) rotate(0); }
+          25% { transform: translateY(-15px) rotate(-10deg); }
+          50% { transform: translateY(-20px) rotate(10deg); }
+          75% { transform: translateY(-10px) rotate(-5deg); }
+        }
+        @keyframes owlThink {
+          0%,100% { transform: rotate(0deg); }
+          50% { transform: rotate(15deg); }
+        }
+        @keyframes stickPoint {
+          0%,100% { transform: rotate(0deg); }
+          50% { transform: rotate(-30deg); }
+        }
+        .owl-container {
+          position: relative;
+          height: 90px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 8px;
+          overflow: visible;
+        }
+        .owl-body {
+          font-size: 48px;
+          display: inline-block;
+          position: relative;
+          cursor: pointer;
+          filter: drop-shadow(0 0 12px rgba(0,212,255,0.6));
+        }
+        .owl-body.walk { animation: owlWalk 2s ease-in-out infinite; }
+        .owl-body.point { animation: owlPoint 1s ease-in-out infinite; }
+        .owl-body.celebrate { animation: owlCelebrate 0.6s ease-in-out infinite; }
+        .owl-body.think { animation: owlThink 1.5s ease-in-out infinite; }
+        .owl-stick {
+          position: absolute;
+          font-size: 22px;
+          animation: stickPoint 1s ease-in-out infinite;
+          transform-origin: bottom center;
+        }
+        .stick-up { top: -20px; left: 50%; transform: translateX(-50%) rotate(-20deg); }
+        .stick-down { bottom: -20px; left: 50%; transform: translateX(-50%) rotate(20deg); }
+        .stick-left { left: -30px; top: 40%; transform: rotate(90deg); }
+        .stick-right { right: -30px; top: 40%; transform: rotate(-90deg); }
+        .speech-bubble {
+          position: absolute;
+          background: rgba(0,212,255,0.15);
+          border: 1px solid rgba(0,212,255,0.4);
+          border-radius: 12px;
+          padding: 4px 10px;
+          font-size: 11px;
+          color: var(--cyan);
+          font-family: 'Share Tech Mono', monospace;
+          white-space: nowrap;
+          top: -28px;
+          left: 50%;
+          transform: translateX(-50%);
+          animation: blink 2s ease-in-out infinite;
+        }
+      `}</style>
 
-      <button className="tutor-fab" onClick={() => { setTutorOpen(!tutorOpen); setTutorStep(0); }}>🦉</button>
+      <button className="tutor-fab" onClick={() => { setTutorOpen(!tutorOpen); setTutorStep(0); }}>
+        🦉
+      </button>
 
-      {tutorOpen && (
-        <div className="tutor-panel">
-          <div className="tutor-owl">🦉</div>
-          <div className="tutor-title">{tutorSteps[tutorStep].title}</div>
-          <div className="tutor-msg">{tutorSteps[tutorStep].msg}</div>
-          <div className="tutor-nav">
-            <div className="tutor-dots">{tutorSteps.map((_, i) => <div key={i} className={`tutor-dot ${i === tutorStep ? 'active' : ''}`} />)}</div>
-            <button className="tutor-next" onClick={() => { if (tutorStep < tutorSteps.length - 1) setTutorStep(tutorStep + 1); else setTutorOpen(false); }}>
-              {tutorStep < tutorSteps.length - 1 ? 'NEXT →' : 'LFG 🚀'}
-            </button>
+      {tutorOpen && (() => {
+        const steps = [
+          { title: "Welcome to AgentMarket 🦉", msg: "I'm Ori — your cyberpunk owl guide. AgentMarket is the App Store for AI Agents, powered by 0G blockchain!", action: "walk", stickPos: null, bubble: "Hello!" },
+          { title: "Pick Your Agent 🎯", msg: "Browse agents by category — Builders, Creators, General. Scroll down and check them out 👇", action: "point", stickPos: "stick-down", bubble: "Look here!" },
+          { title: "Hire & Run 💸", msg: "Click HIRE → describe your task → agent runs in real time. Output stored on 0G Storage permanently.", action: "point", stickPos: "stick-left", bubble: "Click HIRE!" },
+          { title: "On-Chain Proof 🔗", msg: "Every result gets a Merkle root hash on 0G — fully verifiable forever. You own your data.", action: "think", stickPos: null, bubble: "Thinking..." },
+          { title: "You're Ready! 🚀", msg: "That's it! Go hire your first agent. The future of work is autonomous. LFG!", action: "celebrate", stickPos: "stick-up", bubble: "LFG!! 🚀" },
+        ];
+        const s = steps[tutorStep];
+        return (
+          <div className="tutor-panel">
+            <div className="owl-container">
+              <div className={`owl-body ${s.action}`}>
+                {s.bubble && <div className="speech-bubble">{s.bubble}</div>}
+                🦉
+                {s.stickPos && <span className={`owl-stick ${s.stickPos}`}>🪄</span>}
+              </div>
+            </div>
+            <div className="tutor-title">{s.title}</div>
+            <div className="tutor-msg">{s.msg}</div>
+            <div className="tutor-nav">
+              <div className="tutor-dots">
+                {steps.map((_, i) => <div key={i} className={`tutor-dot ${i === tutorStep ? 'active' : ''}`} />)}
+              </div>
+              <button className="tutor-next" onClick={() => { if (tutorStep < steps.length - 1) setTutorStep(tutorStep + 1); else setTutorOpen(false); }}>
+                {tutorStep < steps.length - 1 ? 'NEXT →' : 'LFG 🚀'}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </>
   );
 }
+      
